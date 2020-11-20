@@ -1,0 +1,2189 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "Influenza A_Bioactivity_Data_Part 2.pynb",
+      "provenance": [],
+      "collapsed_sections": [],
+      "toc_visible": true,
+      "authorship_tag": "ABX9TyNQg1ZJgTDzc7ds+ywikm8W",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/sayanpaul1997/Python/blob/main/Project_1/Influenza%20A%20hemagglutinin_Bioactivity_Data\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "OIzBCw8a3yU2"
+      },
+      "source": [
+        "#**Drug Discovery of Influenza**"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "TnRWFB_c4WjY"
+      },
+      "source": [
+        "##Libraries"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "RQL9qCffnvUS"
+      },
+      "source": [
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "import matplotlib.pyplot as plt"
+      ],
+      "execution_count": 1,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "-4ZCmwRFop6-",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "6dbc67b1-1f99-4e42-813f-71ecbe43cf88"
+      },
+      "source": [
+        "! pip install chembl_webresource_client"
+      ],
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Collecting chembl_webresource_client\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/2e/48/0db29040c92726fcc6f99a5bc89e0ea8cf5a9d84753ebaaf53108792da2a/chembl-webresource-client-0.10.2.tar.gz (51kB)\n",
+            "\r\u001b[K     |██████▍                         | 10kB 12.5MB/s eta 0:00:01\r\u001b[K     |████████████▊                   | 20kB 17.8MB/s eta 0:00:01\r\u001b[K     |███████████████████             | 30kB 9.8MB/s eta 0:00:01\r\u001b[K     |█████████████████████████▍      | 40kB 9.2MB/s eta 0:00:01\r\u001b[K     |███████████████████████████████▊| 51kB 7.9MB/s eta 0:00:01\r\u001b[K     |████████████████████████████████| 61kB 4.5MB/s \n",
+            "\u001b[?25hRequirement already satisfied: urllib3 in /usr/local/lib/python3.6/dist-packages (from chembl_webresource_client) (1.24.3)\n",
+            "Requirement already satisfied: requests>=2.18.4 in /usr/local/lib/python3.6/dist-packages (from chembl_webresource_client) (2.23.0)\n",
+            "Collecting requests-cache>=0.4.7\n",
+            "  Downloading https://files.pythonhosted.org/packages/7f/55/9b1c40eb83c16d8fc79c5f6c2ffade04208b080670fbfc35e0a5effb5a92/requests_cache-0.5.2-py2.py3-none-any.whl\n",
+            "Requirement already satisfied: easydict in /usr/local/lib/python3.6/dist-packages (from chembl_webresource_client) (1.9)\n",
+            "Requirement already satisfied: chardet<4,>=3.0.2 in /usr/local/lib/python3.6/dist-packages (from requests>=2.18.4->chembl_webresource_client) (3.0.4)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.6/dist-packages (from requests>=2.18.4->chembl_webresource_client) (2020.6.20)\n",
+            "Requirement already satisfied: idna<3,>=2.5 in /usr/local/lib/python3.6/dist-packages (from requests>=2.18.4->chembl_webresource_client) (2.10)\n",
+            "Building wheels for collected packages: chembl-webresource-client\n",
+            "  Building wheel for chembl-webresource-client (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for chembl-webresource-client: filename=chembl_webresource_client-0.10.2-cp36-none-any.whl size=55662 sha256=8747447b9c377e8c1b84ca2d8cba9622a0899aa432bc879a9b10a779f20144b6\n",
+            "  Stored in directory: /root/.cache/pip/wheels/e6/96/19/3f042bfda7c669bfe24c8278477f57b0fbbf3e488b4c09e3a8\n",
+            "Successfully built chembl-webresource-client\n",
+            "Installing collected packages: requests-cache, chembl-webresource-client\n",
+            "Successfully installed chembl-webresource-client-0.10.2 requests-cache-0.5.2\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "kqOnddrfo49x"
+      },
+      "source": [
+        "##IMPORT LIBRARIES"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "f-lRt9-Vo_4b"
+      },
+      "source": [
+        "import pandas as pd\n",
+        "from chembl_webresource_client.new_client import new_client"
+      ],
+      "execution_count": 3,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Tu83UsWBpHHy"
+      },
+      "source": [
+        "###SEARCH PROTEINS"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "_V96OUJ8pSHs",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 654
+        },
+        "outputId": "b3e11710-aa55-40a6-dcde-6dff59690734"
+      },
+      "source": [
+        "target = new_client.target\n",
+        "target_query = target.search('Influenza A')\n",
+        "targets = pd.DataFrame.from_dict(target_query)\n",
+        "targets"
+      ],
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>cross_references</th>\n",
+              "      <th>organism</th>\n",
+              "      <th>pref_name</th>\n",
+              "      <th>score</th>\n",
+              "      <th>species_group_flag</th>\n",
+              "      <th>target_chembl_id</th>\n",
+              "      <th>target_components</th>\n",
+              "      <th>target_type</th>\n",
+              "      <th>tax_id</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Influenza A virus</td>\n",
+              "      <td>Influenza A virus</td>\n",
+              "      <td>18.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL613740</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>ORGANISM</td>\n",
+              "      <td>11320.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>[{'xref_id': 'P03438', 'xref_name': None, 'xre...</td>\n",
+              "      <td>Influenza A virus (strain A/X-31 H3N2)</td>\n",
+              "      <td>Influenza A virus Hemagglutinin</td>\n",
+              "      <td>16.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL4918</td>\n",
+              "      <td>[{'accession': 'P03438', 'component_descriptio...</td>\n",
+              "      <td>SINGLE PROTEIN</td>\n",
+              "      <td>132504.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Influenza A virus (H5N1)</td>\n",
+              "      <td>Influenza A virus (H5N1)</td>\n",
+              "      <td>16.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL613845</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>ORGANISM</td>\n",
+              "      <td>102793.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Influenza A virus H3N2</td>\n",
+              "      <td>Influenza A virus H3N2</td>\n",
+              "      <td>16.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL2366902</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>ORGANISM</td>\n",
+              "      <td>41857.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Unidentified Influenza A virus (H1N2)</td>\n",
+              "      <td>Unidentified Influenza A virus (H1N2)</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL2367089</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>ORGANISM</td>\n",
+              "      <td>1323429.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>...</th>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>680</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Rattus norvegicus</td>\n",
+              "      <td>Serotonin (5-HT) receptor</td>\n",
+              "      <td>0.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL2094123</td>\n",
+              "      <td>[{'accession': 'P35563', 'component_descriptio...</td>\n",
+              "      <td>PROTEIN FAMILY</td>\n",
+              "      <td>10116.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>681</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Rattus norvegicus</td>\n",
+              "      <td>Glutamate receptors; NMDA/AMPA</td>\n",
+              "      <td>0.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL2096669</td>\n",
+              "      <td>[{'accession': 'P35439', 'component_descriptio...</td>\n",
+              "      <td>PROTEIN COMPLEX GROUP</td>\n",
+              "      <td>10116.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>682</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Homo sapiens</td>\n",
+              "      <td>Serotonin (5-HT) receptor</td>\n",
+              "      <td>0.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL2096904</td>\n",
+              "      <td>[{'accession': 'P30939', 'component_descriptio...</td>\n",
+              "      <td>PROTEIN FAMILY</td>\n",
+              "      <td>9606.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>683</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Homo sapiens</td>\n",
+              "      <td>Mitochondrial complex I (NADH dehydrogenase)</td>\n",
+              "      <td>0.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL2363065</td>\n",
+              "      <td>[{'accession': 'P03923', 'component_descriptio...</td>\n",
+              "      <td>PROTEIN COMPLEX</td>\n",
+              "      <td>9606.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>684</th>\n",
+              "      <td>[]</td>\n",
+              "      <td>Homo sapiens</td>\n",
+              "      <td>Laminin</td>\n",
+              "      <td>0.0</td>\n",
+              "      <td>False</td>\n",
+              "      <td>CHEMBL2364187</td>\n",
+              "      <td>[{'accession': 'P25391', 'component_descriptio...</td>\n",
+              "      <td>PROTEIN COMPLEX GROUP</td>\n",
+              "      <td>9606.0</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "<p>685 rows × 9 columns</p>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "                                      cross_references  ...     tax_id\n",
+              "0                                                   []  ...    11320.0\n",
+              "1    [{'xref_id': 'P03438', 'xref_name': None, 'xre...  ...   132504.0\n",
+              "2                                                   []  ...   102793.0\n",
+              "3                                                   []  ...    41857.0\n",
+              "4                                                   []  ...  1323429.0\n",
+              "..                                                 ...  ...        ...\n",
+              "680                                                 []  ...    10116.0\n",
+              "681                                                 []  ...    10116.0\n",
+              "682                                                 []  ...     9606.0\n",
+              "683                                                 []  ...     9606.0\n",
+              "684                                                 []  ...     9606.0\n",
+              "\n",
+              "[685 rows x 9 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 5
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "oIRY8ZhKpXOW",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 35
+        },
+        "outputId": "6216c31a-ee87-407e-afa2-8e6a68c9f4e2"
+      },
+      "source": [
+        "#Target search protein for Influenza A Hemagglutinin \n",
+        "selected_target = targets.target_chembl_id[1]\n",
+        "selected_target"
+      ],
+      "execution_count": 6,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "string"
+            },
+            "text/plain": [
+              "'CHEMBL4918'"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 6
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "-OrCP_Y0qzG8"
+      },
+      "source": [
+        "#Lets check Bioactivity\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Att9Yey-q_YM"
+      },
+      "source": [
+        "activity = new_client.activity\n",
+        "res = activity.filter(target_chembl_id=selected_target).filter(standard_type=\"IC50\")"
+      ],
+      "execution_count": 7,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "UB9d1VMZrD6O"
+      },
+      "source": [
+        "df = pd.DataFrame.from_dict(res)"
+      ],
+      "execution_count": 8,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "csQxgPGGrI5g",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 194
+        },
+        "outputId": "189ff8cc-8c88-4271-c681-5a542ea96a0e"
+      },
+      "source": [
+        "df.head(3)"
+      ],
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>activity_comment</th>\n",
+              "      <th>activity_id</th>\n",
+              "      <th>activity_properties</th>\n",
+              "      <th>assay_chembl_id</th>\n",
+              "      <th>assay_description</th>\n",
+              "      <th>assay_type</th>\n",
+              "      <th>bao_endpoint</th>\n",
+              "      <th>bao_format</th>\n",
+              "      <th>bao_label</th>\n",
+              "      <th>canonical_smiles</th>\n",
+              "      <th>data_validity_comment</th>\n",
+              "      <th>data_validity_description</th>\n",
+              "      <th>document_chembl_id</th>\n",
+              "      <th>document_journal</th>\n",
+              "      <th>document_year</th>\n",
+              "      <th>ligand_efficiency</th>\n",
+              "      <th>molecule_chembl_id</th>\n",
+              "      <th>molecule_pref_name</th>\n",
+              "      <th>parent_molecule_chembl_id</th>\n",
+              "      <th>pchembl_value</th>\n",
+              "      <th>potential_duplicate</th>\n",
+              "      <th>qudt_units</th>\n",
+              "      <th>record_id</th>\n",
+              "      <th>relation</th>\n",
+              "      <th>src_id</th>\n",
+              "      <th>standard_flag</th>\n",
+              "      <th>standard_relation</th>\n",
+              "      <th>standard_text_value</th>\n",
+              "      <th>standard_type</th>\n",
+              "      <th>standard_units</th>\n",
+              "      <th>standard_upper_value</th>\n",
+              "      <th>standard_value</th>\n",
+              "      <th>target_chembl_id</th>\n",
+              "      <th>target_organism</th>\n",
+              "      <th>target_pref_name</th>\n",
+              "      <th>target_tax_id</th>\n",
+              "      <th>text_value</th>\n",
+              "      <th>toid</th>\n",
+              "      <th>type</th>\n",
+              "      <th>units</th>\n",
+              "      <th>uo_units</th>\n",
+              "      <th>upper_value</th>\n",
+              "      <th>value</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>None</td>\n",
+              "      <td>12201437</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>CHEMBL2209966</td>\n",
+              "      <td>Inhibition of hemagglutininin in Influenza A v...</td>\n",
+              "      <td>B</td>\n",
+              "      <td>BAO_0000190</td>\n",
+              "      <td>BAO_0000219</td>\n",
+              "      <td>cell-based format</td>\n",
+              "      <td>Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2203281</td>\n",
+              "      <td>Bioorg. Med. Chem.</td>\n",
+              "      <td>2012</td>\n",
+              "      <td>{'bei': '14.75', 'le': '0.31', 'lle': '2.37', ...</td>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>5.58</td>\n",
+              "      <td>False</td>\n",
+              "      <td>http://www.openphacts.org/units/Nanomolar</td>\n",
+              "      <td>1761868</td>\n",
+              "      <td>=</td>\n",
+              "      <td>1</td>\n",
+              "      <td>True</td>\n",
+              "      <td>=</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>nM</td>\n",
+              "      <td>None</td>\n",
+              "      <td>2600.0</td>\n",
+              "      <td>CHEMBL4918</td>\n",
+              "      <td>Influenza A virus (strain A/X-31 H3N2)</td>\n",
+              "      <td>Influenza A virus Hemagglutinin</td>\n",
+              "      <td>132504</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>uM</td>\n",
+              "      <td>UO_0000065</td>\n",
+              "      <td>None</td>\n",
+              "      <td>2.6</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>None</td>\n",
+              "      <td>12201438</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>CHEMBL2209966</td>\n",
+              "      <td>Inhibition of hemagglutininin in Influenza A v...</td>\n",
+              "      <td>B</td>\n",
+              "      <td>BAO_0000190</td>\n",
+              "      <td>BAO_0000219</td>\n",
+              "      <td>cell-based format</td>\n",
+              "      <td>CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C...</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2203281</td>\n",
+              "      <td>Bioorg. Med. Chem.</td>\n",
+              "      <td>2012</td>\n",
+              "      <td>{'bei': '14.42', 'le': '0.29', 'lle': '1.33', ...</td>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>5.43</td>\n",
+              "      <td>False</td>\n",
+              "      <td>http://www.openphacts.org/units/Nanomolar</td>\n",
+              "      <td>1761859</td>\n",
+              "      <td>=</td>\n",
+              "      <td>1</td>\n",
+              "      <td>True</td>\n",
+              "      <td>=</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>nM</td>\n",
+              "      <td>None</td>\n",
+              "      <td>3700.0</td>\n",
+              "      <td>CHEMBL4918</td>\n",
+              "      <td>Influenza A virus (strain A/X-31 H3N2)</td>\n",
+              "      <td>Influenza A virus Hemagglutinin</td>\n",
+              "      <td>132504</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>uM</td>\n",
+              "      <td>UO_0000065</td>\n",
+              "      <td>None</td>\n",
+              "      <td>3.7</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "  activity_comment  activity_id  ... upper_value value\n",
+              "0             None     12201437  ...        None   2.6\n",
+              "1             None     12201438  ...        None   3.7\n",
+              "\n",
+              "[2 rows x 43 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 9
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "AxAwemQbsEue"
+      },
+      "source": [
+        "df.to_csv('bioactivity_data.csv', index=False)"
+      ],
+      "execution_count": 10,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "dnVixWm3syLY",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "e33279ba-ead1-4645-d900-267505bc3931"
+      },
+      "source": [
+        "from google.colab import drive\n",
+        "drive.mount('/content/gdrive/', force_remount=True)"
+      ],
+      "execution_count": 11,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Mounted at /content/gdrive/\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "NvwF8K7jtfyE",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "5785355c-62f3-4216-9a34-441b82766430"
+      },
+      "source": [
+        "! ls \"/content/gdrive/My Drive/Colab Notebooks/\""
+      ],
+      "execution_count": 12,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "'Copy of Influenza A_edited_Data analysis.ipynb'\n",
+            "'Copy of Influenza A edited.ipynb'\n",
+            "'Copy of Penicillin_Bioactivity_Data (1).ipynb'\n",
+            "'Copy of Penicillin_Bioactivity_Data (2).ipynb'\n",
+            "'Copy of Penicillin_Bioactivity_Data.ipynb'\n",
+            " data\n",
+            " First.ipynb\n",
+            "'Influenza A_Bioactivity_Data_Part 2.pynb'\n",
+            "'Influenza A correction.pynb'\n",
+            "'Influenza A_edited_Data analysis.ipynb'\n",
+            "'Influenza A edited.ipynb'\n",
+            "'Influenza A.ipynb'\n",
+            " lulu\n",
+            " Project2\n",
+            " Untitled0.ipynb\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "V3Osg_FmuN0u",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "3a2185ca-92c2-4fda-f78f-f4e6596bc68d"
+      },
+      "source": [
+        "! mkdir \"/content/gdrive/My Drive/Colab Notebooks/lulu\""
+      ],
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "mkdir: cannot create directory ‘/content/gdrive/My Drive/Colab Notebooks/lulu’: File exists\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "FWE6Diqiuqu4"
+      },
+      "source": [
+        "! cp bioactivity_data.csv \"/content/gdrive/My Drive/Colab Notebooks/lulu\""
+      ],
+      "execution_count": 14,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "t81hsR0MvJt4",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "29a38750-2496-4bd3-e3a9-ef75d794bdeb"
+      },
+      "source": [
+        "! ls \"/content/gdrive/My Drive/Colab Notebooks/lulu\""
+      ],
+      "execution_count": 15,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "bioactivity_data1.csv  pre_processed_data1.csv\n",
+            "bioactivity_data.csv   pre_processed_data.csv\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "CuYavvahvYq8",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "9e96b663-fc8e-421d-edb7-fb05d78b5447"
+      },
+      "source": [
+        "! ls"
+      ],
+      "execution_count": 16,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "bioactivity_data.csv  gdrive  sample_data\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "EC8uMbmovaWB",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "1f4b5971-9011-4443-a603-827cf3205e24"
+      },
+      "source": [
+        "! head bioactivity_data.csv"
+      ],
+      "execution_count": 17,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "activity_comment,activity_id,activity_properties,assay_chembl_id,assay_description,assay_type,bao_endpoint,bao_format,bao_label,canonical_smiles,data_validity_comment,data_validity_description,document_chembl_id,document_journal,document_year,ligand_efficiency,molecule_chembl_id,molecule_pref_name,parent_molecule_chembl_id,pchembl_value,potential_duplicate,qudt_units,record_id,relation,src_id,standard_flag,standard_relation,standard_text_value,standard_type,standard_units,standard_upper_value,standard_value,target_chembl_id,target_organism,target_pref_name,target_tax_id,text_value,toid,type,units,uo_units,upper_value,value\n",
+            ",12201437,[],CHEMBL2209966,Inhibition of hemagglutininin in Influenza A virus (A/X-31(H3N2)) infected in chicken red blood cells assessed as inhibition of hemolysis preincubated for 1 hr prior to addition of red blood cells measured at pH 5.0 by spectrophotometric analysis,B,BAO_0000190,BAO_0000219,cell-based format,Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2,,,CHEMBL2203281,Bioorg. Med. Chem.,2012,\"{'bei': '14.75', 'le': '0.31', 'lle': '2.37', 'sei': '8.37'}\",CHEMBL2207987,,CHEMBL2207987,5.58,False,http://www.openphacts.org/units/Nanomolar,1761868,=,1,True,=,,IC50,nM,,2600.0,CHEMBL4918,Influenza A virus (strain A/X-31 H3N2),Influenza A virus Hemagglutinin,132504,,,IC50,uM,UO_0000065,,2.6\n",
+            ",12201438,[],CHEMBL2209966,Inhibition of hemagglutininin in Influenza A virus (A/X-31(H3N2)) infected in chicken red blood cells assessed as inhibition of hemolysis preincubated for 1 hr prior to addition of red blood cells measured at pH 5.0 by spectrophotometric analysis,B,BAO_0000190,BAO_0000219,cell-based format,CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C1)C2,,,CHEMBL2203281,Bioorg. Med. Chem.,2012,\"{'bei': '14.42', 'le': '0.29', 'lle': '1.33', 'sei': '10.99'}\",CHEMBL2207978,,CHEMBL2207978,5.43,False,http://www.openphacts.org/units/Nanomolar,1761859,=,1,True,=,,IC50,nM,,3700.0,CHEMBL4918,Influenza A virus (strain A/X-31 H3N2),Influenza A virus Hemagglutinin,132504,,,IC50,uM,UO_0000065,,3.7\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "GxU5QyFEvx9q"
+      },
+      "source": [
+        "###  Handling Mising data"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "iMyw7ZYqySV0"
+      },
+      "source": [
+        "newdf=df[df.standard_value.notna()]"
+      ],
+      "execution_count": 18,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "qJH3mIvsyovp",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 194
+        },
+        "outputId": "82c293aa-ef2b-41e3-d5f9-dea5d6489cc0"
+      },
+      "source": [
+        "newdf"
+      ],
+      "execution_count": 19,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>activity_comment</th>\n",
+              "      <th>activity_id</th>\n",
+              "      <th>activity_properties</th>\n",
+              "      <th>assay_chembl_id</th>\n",
+              "      <th>assay_description</th>\n",
+              "      <th>assay_type</th>\n",
+              "      <th>bao_endpoint</th>\n",
+              "      <th>bao_format</th>\n",
+              "      <th>bao_label</th>\n",
+              "      <th>canonical_smiles</th>\n",
+              "      <th>data_validity_comment</th>\n",
+              "      <th>data_validity_description</th>\n",
+              "      <th>document_chembl_id</th>\n",
+              "      <th>document_journal</th>\n",
+              "      <th>document_year</th>\n",
+              "      <th>ligand_efficiency</th>\n",
+              "      <th>molecule_chembl_id</th>\n",
+              "      <th>molecule_pref_name</th>\n",
+              "      <th>parent_molecule_chembl_id</th>\n",
+              "      <th>pchembl_value</th>\n",
+              "      <th>potential_duplicate</th>\n",
+              "      <th>qudt_units</th>\n",
+              "      <th>record_id</th>\n",
+              "      <th>relation</th>\n",
+              "      <th>src_id</th>\n",
+              "      <th>standard_flag</th>\n",
+              "      <th>standard_relation</th>\n",
+              "      <th>standard_text_value</th>\n",
+              "      <th>standard_type</th>\n",
+              "      <th>standard_units</th>\n",
+              "      <th>standard_upper_value</th>\n",
+              "      <th>standard_value</th>\n",
+              "      <th>target_chembl_id</th>\n",
+              "      <th>target_organism</th>\n",
+              "      <th>target_pref_name</th>\n",
+              "      <th>target_tax_id</th>\n",
+              "      <th>text_value</th>\n",
+              "      <th>toid</th>\n",
+              "      <th>type</th>\n",
+              "      <th>units</th>\n",
+              "      <th>uo_units</th>\n",
+              "      <th>upper_value</th>\n",
+              "      <th>value</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>None</td>\n",
+              "      <td>12201437</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>CHEMBL2209966</td>\n",
+              "      <td>Inhibition of hemagglutininin in Influenza A v...</td>\n",
+              "      <td>B</td>\n",
+              "      <td>BAO_0000190</td>\n",
+              "      <td>BAO_0000219</td>\n",
+              "      <td>cell-based format</td>\n",
+              "      <td>Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2203281</td>\n",
+              "      <td>Bioorg. Med. Chem.</td>\n",
+              "      <td>2012</td>\n",
+              "      <td>{'bei': '14.75', 'le': '0.31', 'lle': '2.37', ...</td>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>5.58</td>\n",
+              "      <td>False</td>\n",
+              "      <td>http://www.openphacts.org/units/Nanomolar</td>\n",
+              "      <td>1761868</td>\n",
+              "      <td>=</td>\n",
+              "      <td>1</td>\n",
+              "      <td>True</td>\n",
+              "      <td>=</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>nM</td>\n",
+              "      <td>None</td>\n",
+              "      <td>2600.0</td>\n",
+              "      <td>CHEMBL4918</td>\n",
+              "      <td>Influenza A virus (strain A/X-31 H3N2)</td>\n",
+              "      <td>Influenza A virus Hemagglutinin</td>\n",
+              "      <td>132504</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>uM</td>\n",
+              "      <td>UO_0000065</td>\n",
+              "      <td>None</td>\n",
+              "      <td>2.6</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>None</td>\n",
+              "      <td>12201438</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>CHEMBL2209966</td>\n",
+              "      <td>Inhibition of hemagglutininin in Influenza A v...</td>\n",
+              "      <td>B</td>\n",
+              "      <td>BAO_0000190</td>\n",
+              "      <td>BAO_0000219</td>\n",
+              "      <td>cell-based format</td>\n",
+              "      <td>CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C...</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2203281</td>\n",
+              "      <td>Bioorg. Med. Chem.</td>\n",
+              "      <td>2012</td>\n",
+              "      <td>{'bei': '14.42', 'le': '0.29', 'lle': '1.33', ...</td>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>5.43</td>\n",
+              "      <td>False</td>\n",
+              "      <td>http://www.openphacts.org/units/Nanomolar</td>\n",
+              "      <td>1761859</td>\n",
+              "      <td>=</td>\n",
+              "      <td>1</td>\n",
+              "      <td>True</td>\n",
+              "      <td>=</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>nM</td>\n",
+              "      <td>None</td>\n",
+              "      <td>3700.0</td>\n",
+              "      <td>CHEMBL4918</td>\n",
+              "      <td>Influenza A virus (strain A/X-31 H3N2)</td>\n",
+              "      <td>Influenza A virus Hemagglutinin</td>\n",
+              "      <td>132504</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>uM</td>\n",
+              "      <td>UO_0000065</td>\n",
+              "      <td>None</td>\n",
+              "      <td>3.7</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "  activity_comment  activity_id  ... upper_value value\n",
+              "0             None     12201437  ...        None   2.6\n",
+              "1             None     12201438  ...        None   3.7\n",
+              "\n",
+              "[2 rows x 43 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 19
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "x5KtPiy-zB_Z"
+      },
+      "source": [
+        "####Lets classifiy"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "harncaf8zDvf",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "cc5ba25d-8e7b-4570-9bb4-17a7e39b8894"
+      },
+      "source": [
+        "for i in newdf.standard_value:\n",
+        "    if float(i) >= 10000:\n",
+        "        print(\"Inactive\")\n",
+        "    elif float(i) <= 1000:\n",
+        "        print(\"Active\")\n",
+        "    else: \n",
+        "        print(\"intermediate\")\n"
+      ],
+      "execution_count": 21,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "intermediate\n",
+            "intermediate\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "TLUiGJ5Inya1"
+      },
+      "source": [
+        "classification = []\n",
+        "for i in newdf.standard_value:\n",
+        "    if float(i) >= 10000:\n",
+        "        classification.append(\"Inactive\")\n",
+        "    elif float(i) <= 1000:\n",
+        "        classification.append(\"Active\")\n",
+        "    else: \n",
+        "        classification.append(\"intermediate\")\n"
+      ],
+      "execution_count": 22,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "TK11fH_trAzQ",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "354508dd-25c6-4973-f3e3-d99cfef89cb5"
+      },
+      "source": [
+        "classification"
+      ],
+      "execution_count": 23,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "['intermediate', 'intermediate']"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 23
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mnJXuPn_CKOU",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 194
+        },
+        "outputId": "a202af7b-2d95-4fc7-d53a-815104256ee5"
+      },
+      "source": [
+        "###Add this to a column \n",
+        "pd.concat([newdf,pd.Series(classification)], axis=1)"
+      ],
+      "execution_count": 24,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>activity_comment</th>\n",
+              "      <th>activity_id</th>\n",
+              "      <th>activity_properties</th>\n",
+              "      <th>assay_chembl_id</th>\n",
+              "      <th>assay_description</th>\n",
+              "      <th>assay_type</th>\n",
+              "      <th>bao_endpoint</th>\n",
+              "      <th>bao_format</th>\n",
+              "      <th>bao_label</th>\n",
+              "      <th>canonical_smiles</th>\n",
+              "      <th>data_validity_comment</th>\n",
+              "      <th>data_validity_description</th>\n",
+              "      <th>document_chembl_id</th>\n",
+              "      <th>document_journal</th>\n",
+              "      <th>document_year</th>\n",
+              "      <th>ligand_efficiency</th>\n",
+              "      <th>molecule_chembl_id</th>\n",
+              "      <th>molecule_pref_name</th>\n",
+              "      <th>parent_molecule_chembl_id</th>\n",
+              "      <th>pchembl_value</th>\n",
+              "      <th>potential_duplicate</th>\n",
+              "      <th>qudt_units</th>\n",
+              "      <th>record_id</th>\n",
+              "      <th>relation</th>\n",
+              "      <th>src_id</th>\n",
+              "      <th>standard_flag</th>\n",
+              "      <th>standard_relation</th>\n",
+              "      <th>standard_text_value</th>\n",
+              "      <th>standard_type</th>\n",
+              "      <th>standard_units</th>\n",
+              "      <th>standard_upper_value</th>\n",
+              "      <th>standard_value</th>\n",
+              "      <th>target_chembl_id</th>\n",
+              "      <th>target_organism</th>\n",
+              "      <th>target_pref_name</th>\n",
+              "      <th>target_tax_id</th>\n",
+              "      <th>text_value</th>\n",
+              "      <th>toid</th>\n",
+              "      <th>type</th>\n",
+              "      <th>units</th>\n",
+              "      <th>uo_units</th>\n",
+              "      <th>upper_value</th>\n",
+              "      <th>value</th>\n",
+              "      <th>0</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>None</td>\n",
+              "      <td>12201437</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>CHEMBL2209966</td>\n",
+              "      <td>Inhibition of hemagglutininin in Influenza A v...</td>\n",
+              "      <td>B</td>\n",
+              "      <td>BAO_0000190</td>\n",
+              "      <td>BAO_0000219</td>\n",
+              "      <td>cell-based format</td>\n",
+              "      <td>Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2203281</td>\n",
+              "      <td>Bioorg. Med. Chem.</td>\n",
+              "      <td>2012</td>\n",
+              "      <td>{'bei': '14.75', 'le': '0.31', 'lle': '2.37', ...</td>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>5.58</td>\n",
+              "      <td>False</td>\n",
+              "      <td>http://www.openphacts.org/units/Nanomolar</td>\n",
+              "      <td>1761868</td>\n",
+              "      <td>=</td>\n",
+              "      <td>1</td>\n",
+              "      <td>True</td>\n",
+              "      <td>=</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>nM</td>\n",
+              "      <td>None</td>\n",
+              "      <td>2600.0</td>\n",
+              "      <td>CHEMBL4918</td>\n",
+              "      <td>Influenza A virus (strain A/X-31 H3N2)</td>\n",
+              "      <td>Influenza A virus Hemagglutinin</td>\n",
+              "      <td>132504</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>uM</td>\n",
+              "      <td>UO_0000065</td>\n",
+              "      <td>None</td>\n",
+              "      <td>2.6</td>\n",
+              "      <td>intermediate</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>None</td>\n",
+              "      <td>12201438</td>\n",
+              "      <td>[]</td>\n",
+              "      <td>CHEMBL2209966</td>\n",
+              "      <td>Inhibition of hemagglutininin in Influenza A v...</td>\n",
+              "      <td>B</td>\n",
+              "      <td>BAO_0000190</td>\n",
+              "      <td>BAO_0000219</td>\n",
+              "      <td>cell-based format</td>\n",
+              "      <td>CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C...</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2203281</td>\n",
+              "      <td>Bioorg. Med. Chem.</td>\n",
+              "      <td>2012</td>\n",
+              "      <td>{'bei': '14.42', 'le': '0.29', 'lle': '1.33', ...</td>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>None</td>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>5.43</td>\n",
+              "      <td>False</td>\n",
+              "      <td>http://www.openphacts.org/units/Nanomolar</td>\n",
+              "      <td>1761859</td>\n",
+              "      <td>=</td>\n",
+              "      <td>1</td>\n",
+              "      <td>True</td>\n",
+              "      <td>=</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>nM</td>\n",
+              "      <td>None</td>\n",
+              "      <td>3700.0</td>\n",
+              "      <td>CHEMBL4918</td>\n",
+              "      <td>Influenza A virus (strain A/X-31 H3N2)</td>\n",
+              "      <td>Influenza A virus Hemagglutinin</td>\n",
+              "      <td>132504</td>\n",
+              "      <td>None</td>\n",
+              "      <td>None</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>uM</td>\n",
+              "      <td>UO_0000065</td>\n",
+              "      <td>None</td>\n",
+              "      <td>3.7</td>\n",
+              "      <td>intermediate</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "  activity_comment  activity_id  ... value             0\n",
+              "0             None     12201437  ...   2.6  intermediate\n",
+              "1             None     12201438  ...   3.7  intermediate\n",
+              "\n",
+              "[2 rows x 44 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 24
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "bnPjwjmirO2j"
+      },
+      "source": [
+        "####Itterate and combine"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "nOogmWJy1750",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 106
+        },
+        "outputId": "ea8efdd5-7e97-47db-e8b1-993b624f14ad"
+      },
+      "source": [
+        "select = ['molecule_chembl_id','standard_value','standard_type','canonical_smiles']\n",
+        "combine = newdf[select]\n",
+        "combine"
+      ],
+      "execution_count": 28,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>molecule_chembl_id</th>\n",
+              "      <th>standard_value</th>\n",
+              "      <th>standard_type</th>\n",
+              "      <th>canonical_smiles</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>2600.0</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>3700.0</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C...</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "  molecule_chembl_id  ...                                   canonical_smiles\n",
+              "0      CHEMBL2207987  ...        Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2\n",
+              "1      CHEMBL2207978  ...  CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C...\n",
+              "\n",
+              "[2 rows x 4 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 28
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mOxIrrccxLJd"
+      },
+      "source": [
+        "final_dataframe=pd.concat([combine,pd.Series(classification)], axis=1)"
+      ],
+      "execution_count": 29,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "7cE3aGsvGcmH",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 106
+        },
+        "outputId": "b88a2e05-8159-476c-ff60-61d12a80d66d"
+      },
+      "source": [
+        "final_dataframe\n"
+      ],
+      "execution_count": 30,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>molecule_chembl_id</th>\n",
+              "      <th>standard_value</th>\n",
+              "      <th>standard_type</th>\n",
+              "      <th>canonical_smiles</th>\n",
+              "      <th>0</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>2600.0</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2</td>\n",
+              "      <td>intermediate</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>3700.0</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C...</td>\n",
+              "      <td>intermediate</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "  molecule_chembl_id  ...             0\n",
+              "0      CHEMBL2207987  ...  intermediate\n",
+              "1      CHEMBL2207978  ...  intermediate\n",
+              "\n",
+              "[2 rows x 5 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 30
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "neHzDEcCHymL"
+      },
+      "source": [
+        "#### covert this to .csv file\n",
+        "final_dataframe.to_csv('pre_processed_data.csv', index=False)  "
+      ],
+      "execution_count": 31,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "R7JfIJ4bHzVK"
+      },
+      "source": [
+        "! cp pre_processed_data.csv \"/content/gdrive/My Drive/Colab Notebooks/lulu/\""
+      ],
+      "execution_count": 32,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "hrxox5v2JEJG",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "9ac7067b-957c-4a93-a82f-39e52c3c9603"
+      },
+      "source": [
+        "ls \"/content/gdrive/My Drive/Colab Notebooks/lulu/\""
+      ],
+      "execution_count": 33,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "bioactivity_data1.csv  pre_processed_data1.csv\n",
+            "bioactivity_data.csv   pre_processed_data.csv\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "tAuJMTBjt3iT"
+      },
+      "source": [
+        "#**PART 2**"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "g50wn0tj7_v4"
+      },
+      "source": [
+        "#Exploratory Data Analysis"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "0I67ULqVuUKA"
+      },
+      "source": [
+        "#Install conda and rdkit\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "fQH410Z6uFLT",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "1a3d912d-82f5-4002-af72-ffa6a77e02bd"
+      },
+      "source": [
+        "! wget https://repo.anaconda.com/miniconda/Miniconda3-py37_4.8.2-Linux-x86_64.sh\n",
+        "! chmod +x Miniconda3-py37_4.8.2-Linux-x86_64.sh\n",
+        "! bash ./Miniconda3-py37_4.8.2-Linux-x86_64.sh -b -f -p /usr/local\n",
+        "! conda install -c rdkit rdkit -y\n",
+        "import sys\n",
+        "sys.path.append('/usr/local/lib/python3.7/site-packages/')"
+      ],
+      "execution_count": 34,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "--2020-11-20 18:34:38--  https://repo.anaconda.com/miniconda/Miniconda3-py37_4.8.2-Linux-x86_64.sh\n",
+            "Resolving repo.anaconda.com (repo.anaconda.com)... 104.16.131.3, 104.16.130.3, 2606:4700::6810:8303, ...\n",
+            "Connecting to repo.anaconda.com (repo.anaconda.com)|104.16.131.3|:443... connected.\n",
+            "HTTP request sent, awaiting response... 200 OK\n",
+            "Length: 85055499 (81M) [application/x-sh]\n",
+            "Saving to: ‘Miniconda3-py37_4.8.2-Linux-x86_64.sh’\n",
+            "\n",
+            "Miniconda3-py37_4.8 100%[===================>]  81.12M   202MB/s    in 0.4s    \n",
+            "\n",
+            "2020-11-20 18:34:38 (202 MB/s) - ‘Miniconda3-py37_4.8.2-Linux-x86_64.sh’ saved [85055499/85055499]\n",
+            "\n",
+            "PREFIX=/usr/local\n",
+            "Unpacking payload ...\n",
+            "Collecting package metadata (current_repodata.json): - \b\b\\ \b\b| \b\bdone\n",
+            "Solving environment: - \b\b\\ \b\bdone\n",
+            "\n",
+            "## Package Plan ##\n",
+            "\n",
+            "  environment location: /usr/local\n",
+            "\n",
+            "  added / updated specs:\n",
+            "    - _libgcc_mutex==0.1=main\n",
+            "    - asn1crypto==1.3.0=py37_0\n",
+            "    - ca-certificates==2020.1.1=0\n",
+            "    - certifi==2019.11.28=py37_0\n",
+            "    - cffi==1.14.0=py37h2e261b9_0\n",
+            "    - chardet==3.0.4=py37_1003\n",
+            "    - conda-package-handling==1.6.0=py37h7b6447c_0\n",
+            "    - conda==4.8.2=py37_0\n",
+            "    - cryptography==2.8=py37h1ba5d50_0\n",
+            "    - idna==2.8=py37_0\n",
+            "    - ld_impl_linux-64==2.33.1=h53a641e_7\n",
+            "    - libedit==3.1.20181209=hc058e9b_0\n",
+            "    - libffi==3.2.1=hd88cf55_4\n",
+            "    - libgcc-ng==9.1.0=hdf63c60_0\n",
+            "    - libstdcxx-ng==9.1.0=hdf63c60_0\n",
+            "    - ncurses==6.2=he6710b0_0\n",
+            "    - openssl==1.1.1d=h7b6447c_4\n",
+            "    - pip==20.0.2=py37_1\n",
+            "    - pycosat==0.6.3=py37h7b6447c_0\n",
+            "    - pycparser==2.19=py37_0\n",
+            "    - pyopenssl==19.1.0=py37_0\n",
+            "    - pysocks==1.7.1=py37_0\n",
+            "    - python==3.7.6=h0371630_2\n",
+            "    - readline==7.0=h7b6447c_5\n",
+            "    - requests==2.22.0=py37_1\n",
+            "    - ruamel_yaml==0.15.87=py37h7b6447c_0\n",
+            "    - setuptools==45.2.0=py37_0\n",
+            "    - six==1.14.0=py37_0\n",
+            "    - sqlite==3.31.1=h7b6447c_0\n",
+            "    - tk==8.6.8=hbc83047_0\n",
+            "    - tqdm==4.42.1=py_0\n",
+            "    - urllib3==1.25.8=py37_0\n",
+            "    - wheel==0.34.2=py37_0\n",
+            "    - xz==5.2.4=h14c3975_4\n",
+            "    - yaml==0.1.7=had09818_2\n",
+            "    - zlib==1.2.11=h7b6447c_3\n",
+            "\n",
+            "\n",
+            "The following NEW packages will be INSTALLED:\n",
+            "\n",
+            "  _libgcc_mutex      pkgs/main/linux-64::_libgcc_mutex-0.1-main\n",
+            "  asn1crypto         pkgs/main/linux-64::asn1crypto-1.3.0-py37_0\n",
+            "  ca-certificates    pkgs/main/linux-64::ca-certificates-2020.1.1-0\n",
+            "  certifi            pkgs/main/linux-64::certifi-2019.11.28-py37_0\n",
+            "  cffi               pkgs/main/linux-64::cffi-1.14.0-py37h2e261b9_0\n",
+            "  chardet            pkgs/main/linux-64::chardet-3.0.4-py37_1003\n",
+            "  conda              pkgs/main/linux-64::conda-4.8.2-py37_0\n",
+            "  conda-package-han~ pkgs/main/linux-64::conda-package-handling-1.6.0-py37h7b6447c_0\n",
+            "  cryptography       pkgs/main/linux-64::cryptography-2.8-py37h1ba5d50_0\n",
+            "  idna               pkgs/main/linux-64::idna-2.8-py37_0\n",
+            "  ld_impl_linux-64   pkgs/main/linux-64::ld_impl_linux-64-2.33.1-h53a641e_7\n",
+            "  libedit            pkgs/main/linux-64::libedit-3.1.20181209-hc058e9b_0\n",
+            "  libffi             pkgs/main/linux-64::libffi-3.2.1-hd88cf55_4\n",
+            "  libgcc-ng          pkgs/main/linux-64::libgcc-ng-9.1.0-hdf63c60_0\n",
+            "  libstdcxx-ng       pkgs/main/linux-64::libstdcxx-ng-9.1.0-hdf63c60_0\n",
+            "  ncurses            pkgs/main/linux-64::ncurses-6.2-he6710b0_0\n",
+            "  openssl            pkgs/main/linux-64::openssl-1.1.1d-h7b6447c_4\n",
+            "  pip                pkgs/main/linux-64::pip-20.0.2-py37_1\n",
+            "  pycosat            pkgs/main/linux-64::pycosat-0.6.3-py37h7b6447c_0\n",
+            "  pycparser          pkgs/main/linux-64::pycparser-2.19-py37_0\n",
+            "  pyopenssl          pkgs/main/linux-64::pyopenssl-19.1.0-py37_0\n",
+            "  pysocks            pkgs/main/linux-64::pysocks-1.7.1-py37_0\n",
+            "  python             pkgs/main/linux-64::python-3.7.6-h0371630_2\n",
+            "  readline           pkgs/main/linux-64::readline-7.0-h7b6447c_5\n",
+            "  requests           pkgs/main/linux-64::requests-2.22.0-py37_1\n",
+            "  ruamel_yaml        pkgs/main/linux-64::ruamel_yaml-0.15.87-py37h7b6447c_0\n",
+            "  setuptools         pkgs/main/linux-64::setuptools-45.2.0-py37_0\n",
+            "  six                pkgs/main/linux-64::six-1.14.0-py37_0\n",
+            "  sqlite             pkgs/main/linux-64::sqlite-3.31.1-h7b6447c_0\n",
+            "  tk                 pkgs/main/linux-64::tk-8.6.8-hbc83047_0\n",
+            "  tqdm               pkgs/main/noarch::tqdm-4.42.1-py_0\n",
+            "  urllib3            pkgs/main/linux-64::urllib3-1.25.8-py37_0\n",
+            "  wheel              pkgs/main/linux-64::wheel-0.34.2-py37_0\n",
+            "  xz                 pkgs/main/linux-64::xz-5.2.4-h14c3975_4\n",
+            "  yaml               pkgs/main/linux-64::yaml-0.1.7-had09818_2\n",
+            "  zlib               pkgs/main/linux-64::zlib-1.2.11-h7b6447c_3\n",
+            "\n",
+            "\n",
+            "Preparing transaction: / \b\b- \b\b\\ \b\b| \b\bdone\n",
+            "Executing transaction: - \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\bdone\n",
+            "installation finished.\n",
+            "WARNING:\n",
+            "    You currently have a PYTHONPATH environment variable set. This may cause\n",
+            "    unexpected behavior when running the Python interpreter in Miniconda3.\n",
+            "    For best results, please verify that your PYTHONPATH only points to\n",
+            "    directories of packages that are compatible with the Python interpreter\n",
+            "    in Miniconda3: /usr/local\n",
+            "Collecting package metadata (current_repodata.json): - \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\bdone\n",
+            "Solving environment: - \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\bdone\n",
+            "\n",
+            "## Package Plan ##\n",
+            "\n",
+            "  environment location: /usr/local\n",
+            "\n",
+            "  added / updated specs:\n",
+            "    - rdkit\n",
+            "\n",
+            "\n",
+            "The following packages will be downloaded:\n",
+            "\n",
+            "    package                    |            build\n",
+            "    ---------------------------|-----------------\n",
+            "    blas-1.0                   |              mkl           6 KB\n",
+            "    bzip2-1.0.8                |       h7b6447c_0          78 KB\n",
+            "    ca-certificates-2020.10.14 |                0         121 KB\n",
+            "    cairo-1.14.12              |       h8948797_3         906 KB\n",
+            "    certifi-2020.6.20          |     pyhd3eb1b0_3         155 KB\n",
+            "    conda-4.9.2                |   py37h06a4308_0         2.9 MB\n",
+            "    fontconfig-2.13.0          |       h9420a91_0         227 KB\n",
+            "    freetype-2.10.4            |       h5ab3b9f_0         596 KB\n",
+            "    glib-2.66.1                |       h92f7085_0         2.9 MB\n",
+            "    icu-58.2                   |       he6710b0_3        10.5 MB\n",
+            "    intel-openmp-2020.2        |              254         786 KB\n",
+            "    jpeg-9b                    |       h024ee3a_2         214 KB\n",
+            "    lcms2-2.11                 |       h396b838_0         307 KB\n",
+            "    libboost-1.73.0            |      hf484d3e_11        13.9 MB\n",
+            "    libffi-3.3                 |       he6710b0_2          50 KB\n",
+            "    libpng-1.6.37              |       hbc83047_0         278 KB\n",
+            "    libtiff-4.1.0              |       h2733197_1         449 KB\n",
+            "    libuuid-1.0.3              |       h1bed415_2          15 KB\n",
+            "    libxcb-1.14                |       h7b6447c_0         505 KB\n",
+            "    libxml2-2.9.10             |       hb55368b_3         1.2 MB\n",
+            "    lz4-c-1.9.2                |       heb0550a_3         175 KB\n",
+            "    mkl-2020.2                 |              256       138.3 MB\n",
+            "    mkl-service-2.3.0          |   py37he904b0f_0         218 KB\n",
+            "    mkl_fft-1.2.0              |   py37h23d657b_0         148 KB\n",
+            "    mkl_random-1.1.1           |   py37h0573a6f_0         322 KB\n",
+            "    numpy-1.19.2               |   py37h54aff64_0          22 KB\n",
+            "    numpy-base-1.19.2          |   py37hfa32c7d_0         4.1 MB\n",
+            "    olefile-0.46               |           py37_0          50 KB\n",
+            "    openssl-1.1.1h             |       h7b6447c_0         2.5 MB\n",
+            "    pandas-1.1.3               |   py37he6710b0_0         8.1 MB\n",
+            "    pcre-8.44                  |       he6710b0_0         212 KB\n",
+            "    pillow-8.0.1               |   py37he98fc37_0         619 KB\n",
+            "    pixman-0.40.0              |       h7b6447c_0         370 KB\n",
+            "    py-boost-1.73.0            |  py37h04863e7_11         202 KB\n",
+            "    python-dateutil-2.8.1      |             py_0         215 KB\n",
+            "    pytz-2020.1                |             py_0         184 KB\n",
+            "    rdkit-2020.09.1.0          |   py37hd50e099_1        25.8 MB  rdkit\n",
+            "    xz-5.2.5                   |       h7b6447c_0         341 KB\n",
+            "    zstd-1.4.5                 |       h9ceee32_0         619 KB\n",
+            "    ------------------------------------------------------------\n",
+            "                                           Total:       218.5 MB\n",
+            "\n",
+            "The following NEW packages will be INSTALLED:\n",
+            "\n",
+            "  blas               pkgs/main/linux-64::blas-1.0-mkl\n",
+            "  bzip2              pkgs/main/linux-64::bzip2-1.0.8-h7b6447c_0\n",
+            "  cairo              pkgs/main/linux-64::cairo-1.14.12-h8948797_3\n",
+            "  fontconfig         pkgs/main/linux-64::fontconfig-2.13.0-h9420a91_0\n",
+            "  freetype           pkgs/main/linux-64::freetype-2.10.4-h5ab3b9f_0\n",
+            "  glib               pkgs/main/linux-64::glib-2.66.1-h92f7085_0\n",
+            "  icu                pkgs/main/linux-64::icu-58.2-he6710b0_3\n",
+            "  intel-openmp       pkgs/main/linux-64::intel-openmp-2020.2-254\n",
+            "  jpeg               pkgs/main/linux-64::jpeg-9b-h024ee3a_2\n",
+            "  lcms2              pkgs/main/linux-64::lcms2-2.11-h396b838_0\n",
+            "  libboost           pkgs/main/linux-64::libboost-1.73.0-hf484d3e_11\n",
+            "  libpng             pkgs/main/linux-64::libpng-1.6.37-hbc83047_0\n",
+            "  libtiff            pkgs/main/linux-64::libtiff-4.1.0-h2733197_1\n",
+            "  libuuid            pkgs/main/linux-64::libuuid-1.0.3-h1bed415_2\n",
+            "  libxcb             pkgs/main/linux-64::libxcb-1.14-h7b6447c_0\n",
+            "  libxml2            pkgs/main/linux-64::libxml2-2.9.10-hb55368b_3\n",
+            "  lz4-c              pkgs/main/linux-64::lz4-c-1.9.2-heb0550a_3\n",
+            "  mkl                pkgs/main/linux-64::mkl-2020.2-256\n",
+            "  mkl-service        pkgs/main/linux-64::mkl-service-2.3.0-py37he904b0f_0\n",
+            "  mkl_fft            pkgs/main/linux-64::mkl_fft-1.2.0-py37h23d657b_0\n",
+            "  mkl_random         pkgs/main/linux-64::mkl_random-1.1.1-py37h0573a6f_0\n",
+            "  numpy              pkgs/main/linux-64::numpy-1.19.2-py37h54aff64_0\n",
+            "  numpy-base         pkgs/main/linux-64::numpy-base-1.19.2-py37hfa32c7d_0\n",
+            "  olefile            pkgs/main/linux-64::olefile-0.46-py37_0\n",
+            "  pandas             pkgs/main/linux-64::pandas-1.1.3-py37he6710b0_0\n",
+            "  pcre               pkgs/main/linux-64::pcre-8.44-he6710b0_0\n",
+            "  pillow             pkgs/main/linux-64::pillow-8.0.1-py37he98fc37_0\n",
+            "  pixman             pkgs/main/linux-64::pixman-0.40.0-h7b6447c_0\n",
+            "  py-boost           pkgs/main/linux-64::py-boost-1.73.0-py37h04863e7_11\n",
+            "  python-dateutil    pkgs/main/noarch::python-dateutil-2.8.1-py_0\n",
+            "  pytz               pkgs/main/noarch::pytz-2020.1-py_0\n",
+            "  rdkit              rdkit/linux-64::rdkit-2020.09.1.0-py37hd50e099_1\n",
+            "  zstd               pkgs/main/linux-64::zstd-1.4.5-h9ceee32_0\n",
+            "\n",
+            "The following packages will be UPDATED:\n",
+            "\n",
+            "  ca-certificates                                2020.1.1-0 --> 2020.10.14-0\n",
+            "  certifi            pkgs/main/linux-64::certifi-2019.11.2~ --> pkgs/main/noarch::certifi-2020.6.20-pyhd3eb1b0_3\n",
+            "  conda                                        4.8.2-py37_0 --> 4.9.2-py37h06a4308_0\n",
+            "  libffi                                   3.2.1-hd88cf55_4 --> 3.3-he6710b0_2\n",
+            "  openssl                                 1.1.1d-h7b6447c_4 --> 1.1.1h-h7b6447c_0\n",
+            "  xz                                       5.2.4-h14c3975_4 --> 5.2.5-h7b6447c_0\n",
+            "\n",
+            "\n",
+            "\n",
+            "Downloading and Extracting Packages\n",
+            "jpeg-9b              | 214 KB    | : 100% 1.0/1 [00:00<00:00,  6.08it/s]               \n",
+            "olefile-0.46         | 50 KB     | : 100% 1.0/1 [00:00<00:00, 11.66it/s]\n",
+            "mkl-service-2.3.0    | 218 KB    | : 100% 1.0/1 [00:00<00:00, 11.35it/s]\n",
+            "python-dateutil-2.8. | 215 KB    | : 100% 1.0/1 [00:00<00:00,  8.76it/s]\n",
+            "pixman-0.40.0        | 370 KB    | : 100% 1.0/1 [00:00<00:00, 10.54it/s]\n",
+            "libffi-3.3           | 50 KB     | : 100% 1.0/1 [00:00<00:00, 14.48it/s]\n",
+            "numpy-base-1.19.2    | 4.1 MB    | : 100% 1.0/1 [00:00<00:00,  1.85it/s]               \n",
+            "bzip2-1.0.8          | 78 KB     | : 100% 1.0/1 [00:00<00:00,  8.09it/s]\n",
+            "libxml2-2.9.10       | 1.2 MB    | : 100% 1.0/1 [00:00<00:00,  4.81it/s]\n",
+            "py-boost-1.73.0      | 202 KB    | : 100% 1.0/1 [00:00<00:00, 11.39it/s]\n",
+            "lz4-c-1.9.2          | 175 KB    | : 100% 1.0/1 [00:00<00:00, 11.96it/s]\n",
+            "libboost-1.73.0      | 13.9 MB   | : 100% 1.0/1 [00:04<00:00,  4.45s/it]               \n",
+            "pcre-8.44            | 212 KB    | : 100% 1.0/1 [00:00<00:00, 11.46it/s]\n",
+            "blas-1.0             | 6 KB      | : 100% 1.0/1 [00:00<00:00, 12.30it/s]\n",
+            "libtiff-4.1.0        | 449 KB    | : 100% 1.0/1 [00:00<00:00,  8.50it/s]\n",
+            "xz-5.2.5             | 341 KB    | : 100% 1.0/1 [00:00<00:00, 12.36it/s]\n",
+            "mkl-2020.2           | 138.3 MB  | : 100% 1.0/1 [00:06<00:00,  6.35s/it]               \n",
+            "glib-2.66.1          | 2.9 MB    | : 100% 1.0/1 [00:00<00:00,  4.28it/s]\n",
+            "pandas-1.1.3         | 8.1 MB    | : 100% 1.0/1 [00:00<00:00,  1.72it/s]               \n",
+            "freetype-2.10.4      | 596 KB    | : 100% 1.0/1 [00:00<00:00, 11.51it/s]\n",
+            "intel-openmp-2020.2  | 786 KB    | : 100% 1.0/1 [00:00<00:00, 11.08it/s]\n",
+            "mkl_random-1.1.1     | 322 KB    | : 100% 1.0/1 [00:00<00:00, 15.00it/s]\n",
+            "rdkit-2020.09.1.0    | 25.8 MB   | : 100% 1.0/1 [02:14<00:00, 134.79s/it]\n",
+            "libxcb-1.14          | 505 KB    | : 100% 1.0/1 [00:00<00:00, 11.17it/s]\n",
+            "mkl_fft-1.2.0        | 148 KB    | : 100% 1.0/1 [00:00<00:00, 16.18it/s]\n",
+            "ca-certificates-2020 | 121 KB    | : 100% 1.0/1 [00:00<00:00, 16.71it/s]\n",
+            "certifi-2020.6.20    | 155 KB    | : 100% 1.0/1 [00:00<00:00, 14.16it/s]\n",
+            "openssl-1.1.1h       | 2.5 MB    | : 100% 1.0/1 [00:00<00:00,  7.37it/s]\n",
+            "zstd-1.4.5           | 619 KB    | : 100% 1.0/1 [00:00<00:00, 12.30it/s]\n",
+            "libuuid-1.0.3        | 15 KB     | : 100% 1.0/1 [00:00<00:00, 20.49it/s]\n",
+            "conda-4.9.2          | 2.9 MB    | : 100% 1.0/1 [00:00<00:00,  1.53it/s]\n",
+            "libpng-1.6.37        | 278 KB    | : 100% 1.0/1 [00:00<00:00, 14.13it/s]\n",
+            "lcms2-2.11           | 307 KB    | : 100% 1.0/1 [00:00<00:00, 15.07it/s]\n",
+            "icu-58.2             | 10.5 MB   | : 100% 1.0/1 [00:00<00:00,  2.29it/s]               \n",
+            "pytz-2020.1          | 184 KB    | : 100% 1.0/1 [00:00<00:00, 10.09it/s]\n",
+            "pillow-8.0.1         | 619 KB    | : 100% 1.0/1 [00:00<00:00, 12.47it/s]\n",
+            "numpy-1.19.2         | 22 KB     | : 100% 1.0/1 [00:00<00:00, 16.49it/s]\n",
+            "cairo-1.14.12        | 906 KB    | : 100% 1.0/1 [00:00<00:00, 10.65it/s]\n",
+            "fontconfig-2.13.0    | 227 KB    | : 100% 1.0/1 [00:00<00:00, 14.05it/s]\n",
+            "Preparing transaction: | \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\bdone\n",
+            "Verifying transaction: - \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\bdone\n",
+            "Executing transaction: \\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\b- \b\b\\ \b\b| \b\b/ \b\bdone\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "6D4UrwX_ugSS"
+      },
+      "source": [
+        "##Load csv file"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Z3-vj0DfuoFK"
+      },
+      "source": [
+        "import pandas as pd"
+      ],
+      "execution_count": 35,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "hWunc3W4uqnY"
+      },
+      "source": [
+        "df = pd.read_csv('pre_processed_data.csv')"
+      ],
+      "execution_count": 36,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Dqo23PRPut_z",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 106
+        },
+        "outputId": "f2f33f7b-47c8-4cd1-8606-9daa180a8c2d"
+      },
+      "source": [
+        "df"
+      ],
+      "execution_count": 37,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>molecule_chembl_id</th>\n",
+              "      <th>standard_value</th>\n",
+              "      <th>standard_type</th>\n",
+              "      <th>canonical_smiles</th>\n",
+              "      <th>0</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>2600.0</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2</td>\n",
+              "      <td>intermediate</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>3700.0</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C...</td>\n",
+              "      <td>intermediate</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "  molecule_chembl_id  ...             0\n",
+              "0      CHEMBL2207987  ...  intermediate\n",
+              "1      CHEMBL2207978  ...  intermediate\n",
+              "\n",
+              "[2 rows x 5 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 37
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "WHQKvfCFu1pS"
+      },
+      "source": [
+        "###Calculate Lipinski descriptors"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "-SDCDYYzu2Ui"
+      },
+      "source": [
+        "import numpy as np\n",
+        "from rdkit import Chem\n",
+        "from rdkit.Chem import Descriptors, Lipinski"
+      ],
+      "execution_count": 38,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "XXXqbLgHu5Th"
+      },
+      "source": [
+        "# Inspired by: https://codeocean.com/explore/capsules?query=tag:data-curation\n",
+        "\n",
+        "def lipinski(smiles, verbose=False):\n",
+        "\n",
+        "    moldata= []\n",
+        "    for elem in smiles:\n",
+        "        mol=Chem.MolFromSmiles(elem) \n",
+        "        moldata.append(mol)\n",
+        "       \n",
+        "    baseData= np.arange(1,1)\n",
+        "    i=0  \n",
+        "    for mol in moldata:        \n",
+        "       \n",
+        "        desc_MolWt = Descriptors.MolWt(mol)\n",
+        "        desc_MolLogP = Descriptors.MolLogP(mol)\n",
+        "        desc_NumHDonors = Lipinski.NumHDonors(mol)\n",
+        "        desc_NumHAcceptors = Lipinski.NumHAcceptors(mol)\n",
+        "           \n",
+        "        row = np.array([desc_MolWt,\n",
+        "                        desc_MolLogP,\n",
+        "                        desc_NumHDonors,\n",
+        "                        desc_NumHAcceptors])   \n",
+        "    \n",
+        "        if(i==0):\n",
+        "            baseData=row\n",
+        "        else:\n",
+        "            baseData=np.vstack([baseData, row])\n",
+        "        i=i+1      \n",
+        "    \n",
+        "    columnNames=[\"MW\",\"LogP\",\"NumHDonors\",\"NumHAcceptors\"]   \n",
+        "    descriptors = pd.DataFrame(data=baseData,columns=columnNames)\n",
+        "    \n",
+        "    return descriptors"
+      ],
+      "execution_count": 39,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "w0k653hRu9sx"
+      },
+      "source": [
+        "dataframe_lipinski = lipinski(df.canonical_smiles)"
+      ],
+      "execution_count": 40,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Dmcsemd0vAF6",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 106
+        },
+        "outputId": "76614a47-638c-498a-8583-dc3c1d998aaf"
+      },
+      "source": [
+        "dataframe_lipinski"
+      ],
+      "execution_count": 41,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>MW</th>\n",
+              "      <th>LogP</th>\n",
+              "      <th>NumHDonors</th>\n",
+              "      <th>NumHAcceptors</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>378.523</td>\n",
+              "      <td>3.21932</td>\n",
+              "      <td>1.0</td>\n",
+              "      <td>6.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>376.566</td>\n",
+              "      <td>4.10430</td>\n",
+              "      <td>1.0</td>\n",
+              "      <td>3.0</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "        MW     LogP  NumHDonors  NumHAcceptors\n",
+              "0  378.523  3.21932         1.0            6.0\n",
+              "1  376.566  4.10430         1.0            3.0"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 41
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "YbvmARLg9F8y"
+      },
+      "source": [
+        "#Combine Dataframes\n",
+        "dataframe= pd.concat([df,dataframe_lipinski], axis=1)"
+      ],
+      "execution_count": 44,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 126
+        },
+        "id": "uNs-yfyz_F5R",
+        "outputId": "1f8a83a6-2b00-4e57-fdd5-bf8621b714b0"
+      },
+      "source": [
+        "dataframe"
+      ],
+      "execution_count": 45,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>molecule_chembl_id</th>\n",
+              "      <th>standard_value</th>\n",
+              "      <th>standard_type</th>\n",
+              "      <th>canonical_smiles</th>\n",
+              "      <th>0</th>\n",
+              "      <th>MW</th>\n",
+              "      <th>LogP</th>\n",
+              "      <th>NumHDonors</th>\n",
+              "      <th>NumHAcceptors</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>CHEMBL2207987</td>\n",
+              "      <td>2600.0</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>Cc1nc2sccn2c1C(=O)NN1C(=O)C(C)SC12CCC(C)CC2</td>\n",
+              "      <td>intermediate</td>\n",
+              "      <td>378.523</td>\n",
+              "      <td>3.21932</td>\n",
+              "      <td>1.0</td>\n",
+              "      <td>6.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>CHEMBL2207978</td>\n",
+              "      <td>3700.0</td>\n",
+              "      <td>IC50</td>\n",
+              "      <td>CC1CCC2(CC1)SC(C)C(=O)N2NC(=O)C12CC3CC(CC(C3)C...</td>\n",
+              "      <td>intermediate</td>\n",
+              "      <td>376.566</td>\n",
+              "      <td>4.10430</td>\n",
+              "      <td>1.0</td>\n",
+              "      <td>3.0</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "  molecule_chembl_id  standard_value  ... NumHDonors NumHAcceptors\n",
+              "0      CHEMBL2207987          2600.0  ...        1.0           6.0\n",
+              "1      CHEMBL2207978          3700.0  ...        1.0           3.0\n",
+              "\n",
+              "[2 rows x 9 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 45
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "LyYVyQx7_iMV"
+      },
+      "source": [
+        "#As their are no active Bioactive data, further exploratory data analysis is not required. Drug discovery cannot be done "
+      ]
+    }
+  ]
+}
